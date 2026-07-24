@@ -1,0 +1,42 @@
+# ──────────────────────────────────────────────────────
+# OKX – 1-minute Kline (candlestick) stream (Spot)
+# Note: candle channels use the /business endpoint
+# ──────────────────────────────────────────────────────
+
+input:
+  websocket:
+    url: "${OKX_BUSINESS_WS:wss://ws.okx.com:8443/ws/v5/business}"
+    open_message: |
+      {"op":"subscribe","args":[{"channel":"candle1m","instId":"BTC-USDT"},{"channel":"candle1m","instId":"ETH-USDT"}]}
+
+pipeline:
+  processors:
+    - mapping: |
+        if this.event.or("") == "subscribe" { root = deleted() }
+
+    - mapping: |
+        # OKX candle data: [ts, open, high, low, close, vol, volCcy, volCcyQuote, confirm]
+        let c = this.data.index(0)
+
+        root.exchange    = "okx"
+        root.market_type = "spot"
+        root.symbol      = this.arg.instId
+        root.interval    = "1m"
+        root.open_time   = $c.index(0).number()
+        root.open        = $c.index(1).number()
+        root.high        = $c.index(2).number()
+        root.low         = $c.index(3).number()
+        root.close       = $c.index(4).number()
+        root.volume      = $c.index(5).number()
+        root.is_closed   = $c.index(8) == "1"
+        root.local_ts    = now().ts_unix_milli()
+
+output:
+  redpanda:
+    seed_brokers:
+      - "${REDPANDA_BROKERS:localhost:9092}"
+    topic: "market.kline.okx.spot"
+    key: "${! this.symbol }"
+    compression: snappy
+    metadata:
+      include_patterns: []

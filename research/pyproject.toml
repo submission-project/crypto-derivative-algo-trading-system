@@ -1,0 +1,34 @@
+[project]
+name = "research"
+version = "0.1.0"
+description = "Quantitative Research & Alpha Signal Models"
+requires-python = ">=3.10"
+dependencies = [
+    "jupyter>=1.0.0",
+    "notebook>=7.0.0",
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+    "pyyaml>=6.0",
+    "requests>=2.31.0",
+    "nbclient>=0.8.0",
+    "nbformat>=5.9.0",
+    "common",
+    "schemas",
+    "storage",
+    "messaging",
+    "risk",
+    "polars>=1.42.1",
+    "networkx>=3.4.2",
+    "cryptohftdata>=0.4.0",
+    "aiofiles>=25.1.0",
+    "nest-asyncio>=1.6.0",
+]
+
+[tool.uv.sources]
+common = { workspace = true }
+schemas = { workspace = true }
+storage = { workspace = true }
+messaging = { workspace = true }
+risk = { workspace = true }

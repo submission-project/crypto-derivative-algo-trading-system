@@ -1,0 +1,24 @@
+[package]
+name = "rust_core"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "rust_core"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+pyo3 = { version = "0.21" }
+serde = { version = "1.0", features = ["derive"] }
+
+serde_json = "1.0"
+binance_sbe = { path = "../binance_sbe" }
+reqwest = { version = "0.12", features = ["json"] }
+tokio = { version = "1.0", features = ["full"] }
+futures = "0.3"
+rand = "0.8"
+pyo3-async-runtimes = { version = "0.21", features = ["tokio-runtime"] }
+
+[features]
+extension-module = ["pyo3/extension-module"]
+default = ["extension-module"]

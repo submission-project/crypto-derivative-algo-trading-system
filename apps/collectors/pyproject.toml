@@ -1,0 +1,53 @@
+[project]
+name = "collectors"
+version = "0.1.0"
+description = "Market Data Collectors"
+requires-python = ">=3.10"
+dependencies = [
+    "aiohttp>=3.9.0",
+    "websockets>=13.0",
+    "orjson>=3.10.0",
+    "aiokafka>=0.11.0",
+    "msgspec>=0.18.0",
+    "redis>=7.4.0",
+    "common",
+    "messaging",
+    "schemas",
+    "storage",
+    "rust-core",
+]
+
+[project.scripts]
+cex-market-data-collector = "cex_market_data_collector.main:run"
+cex-operational-collector = "cex_market_data_collector.operational_main:run"
+binance-perp-collector = "binance_perp_collector.main:run"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "src/exchange/shared/cex_market_data/python/src/cex_market_data_collector",
+    "src/exchange/binance/perp/python/src/binance_perp_trade",
+    "src/exchange/binance/perp/python/src/binance_perp_collector",
+    "src/exchange/binance/spot/python/src/binance_spot_sbe",
+    "src/exchange/bybit/perp/python/src/bybit_perp_collector",
+    "src/exchange/okx/perp/python/src/okx_perp_collector",
+    "src/exchange/bitget/perp/python/src/bitget_perp_collector",
+    "src/exchange/gate/perp/python/src/gate_perp_collector",
+    "src/exchange/mexc/perp/python/src/mexc_perp_collector",
+    "src/exchange/kraken/perp/python/src/kraken_perp_collector",
+    "src/exchange/htx/perp/python/src/htx_perp_collector",
+    "src/exchange/lbank/perp/python/src/lbank_perp_collector",
+    "src/exchange/bitfinex/perp/python/src/bitfinex_perp_collector",
+    "src/exchange/bingx/perp/python/src/bingx_perp_collector",
+    "src/exchange/kucoin/perp/python/src/kucoin_perp_collector",
+]
+
+[tool.uv.sources]
+common = { workspace = true }
+messaging = { workspace = true }
+schemas = { workspace = true }
+storage = { workspace = true }
+rust-core = { workspace = true }

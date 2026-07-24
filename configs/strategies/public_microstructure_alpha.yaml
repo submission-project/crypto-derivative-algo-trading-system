@@ -1,0 +1,49 @@
+strategy_name: public_microstructure_alpha
+symbol: BTCUSDT
+market_type: perp
+
+features:
+  trade_window_ms: 1000
+  orderbook_depth_levels: 5
+  forward_return_horizons_ms:
+    - 1000
+    - 5000
+    - 30000
+
+signal:
+  imbalance_entry_threshold: 0.35
+  max_spread_bps: 3.0
+  max_realized_volatility_bps: 20.0
+
+backtest:
+  initial_equity: 10000
+  notional_per_trade: 1000
+  taker_fee_bps: 4.0
+  maker_fee_bps: 2.0
+  slippage_bps: 1.0
+  default_spread_bps: 1.0
+  latency_periods: 1
+  sqrt_impact_coeff: 0.001
+  max_holding_seconds: 30
+
+parameter_sweep:
+  imbalance_thresholds:
+    - 0.25
+    - 0.30
+    - 0.35
+    - 0.40
+    - 0.45
+  slippage_bps:
+    - 0.5
+    - 1.0
+    - 2.0
+  latency_periods:
+    - 0
+    - 1
+    - 2
+
+risk:
+  max_position_notional: 2000
+  fixed_fraction: 0.1
+  kelly_cap: 0.2
+  max_drawdown_stop: 0.1

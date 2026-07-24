@@ -1,0 +1,54 @@
+.venv
+.scratch/
+.pycache/
+__pycache__/
+.eggs
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.DS_Store
+
+benchmarks/
+
+temp/*
+
+# Local raw market data is too large for GitHub. Keep small audit summaries.
+*.parquet
+*.feather
+*.orc
+datasets/
+!research/notebooks/_outputs/*.csv
+!research/notebooks/_outputs/*.json
+
+# Local service volumes and secrets.
+.env
+.env.*
+!.env.example
+infra/*
+
+# Rust build artifacts
+target/
+
+# Node/JS dependencies & package manager caches
+node_modules/
+.pnpm-store/
+
+# Python virtual environments (alternative names)
+venv/
+env/
+
+# IDE settings
+.idea/
+.vscode/
+
+implementation_plan.md
+README_UV.md
+takora_identity.svg
+TRADING_README.md
+temp/*
+DEV_DOCS.md
+docs/*
+ridge_portfolio.ipynb
+checkin.ipynb

@@ -1,0 +1,10 @@
+[package]
+name = "binance_sbe"
+version = "0.1.0"
+authors = ["sbetool"]
+description = "Spot data streams SBE message schema"
+edition = "2021"
+
+[lib]
+name = "binance_sbe"
+path = "src/lib.rs"

@@ -1,0 +1,31 @@
+[project]
+name = "stream_processor"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "aiohttp>=3.13.5",
+    "aiokafka>=0.14.0",
+    "common",
+    "orjson>=3.11.8",
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+    "python-snappy>=0.7.3",
+    "questdb>=4.1.0",
+    "rust-core",
+    "messaging",
+    "storage",
+    "schemas",
+    "strategies",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+rust-core = { workspace = true }
+common = { workspace = true }
+messaging = { workspace = true }
+storage = { workspace = true }
+schemas = { workspace = true }
+strategies = { workspace = true }

@@ -1,0 +1,37 @@
+# ──────────────────────────────────────────────────────
+# OKX – Real-time trade stream (Spot)
+# ──────────────────────────────────────────────────────
+
+input:
+  websocket:
+    url: "${OKX_PUBLIC_WS:wss://ws.okx.com:8443/ws/v5/public}"
+    open_message: |
+      {"op":"subscribe","args":[{"channel":"trades","instId":"BTC-USDT"},{"channel":"trades","instId":"ETH-USDT"}]}
+
+pipeline:
+  processors:
+    - mapping: |
+        if this.event.or("") == "subscribe" { root = deleted() }
+
+    - mapping: |
+        let t = this.data.index(0)
+
+        root.exchange       = "okx"
+        root.market_type    = "spot"
+        root.symbol         = $t.instId
+        root.price          = $t.px.number()
+        root.size           = $t.sz.number()
+        root.is_buyer_maker = $t.side == "sell"
+        root.exchange_ts    = $t.ts.number()
+        root.local_ts       = now().ts_unix_milli()
+        root.trade_id       = $t.tradeId
+
+output:
+  redpanda:
+    seed_brokers:
+      - "${REDPANDA_BROKERS:localhost:9092}"
+    topic: "market.trades.okx.spot"
+    key: "${! this.symbol }"
+    compression: snappy
+    metadata:
+      include_patterns: []

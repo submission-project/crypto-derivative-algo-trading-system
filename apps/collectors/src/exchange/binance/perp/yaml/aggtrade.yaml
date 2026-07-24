@@ -1,0 +1,63 @@
+# ──────────────────────────────────────────────────────
+# Binance PERP - 실시간 거래 수집
+# 수집 데이터: BTCUSDT
+# ──────────────────────────────────────────────────────
+# docs: https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+
+input:
+  websocket:
+    url: "${BINANCE_PERP_WS}/market/stream?streams=${BINANCE_SYMBOL_BTCUSDT}@${BINANCE_STREAM_TYPE_AGGTRADE}"
+
+    # bounded retry + backfill 전략에서는 false 권장.
+    # true면 output이 포기한 메시지를 input이 다시 replay해서
+    # max_elapsed_time을 제한한 의미가 약해질 수 있음.
+    auto_replay_nacks: false 
+
+    # Binance 연결이 끊겼을 때 input 자체가 종료되지 않도록 하는 쪽.
+    # 문서상 0은 "재시도 안 함", 음수는 필드는 무시.
+    connection:
+      max_retries: -1
+
+pipeline:
+  processors:
+    - mapping: |
+        let d = this.data.or(this)
+
+        root.exchange       = "binance"
+        root.market_type    = "perp"
+        root.symbol         = $d.s
+        root.price          = $d.p.number()
+        root.size           = $d.q.number()
+        root.is_buyer_maker = $d.m.bool()
+        root.exchange_ts    = $d.T.int64()
+        root.local_ts       = now().ts_unix_milli()
+        root.first_trade_id = $d.f.number()
+        root.last_trade_id  = $d.l.number()
+
+output:
+  # label: "market_trades_binance_derivatives"
+  # input → processor → retry output → redpanda 실패
+  #                        ↓
+  #                     output만 재시도
+  #                        ↓
+  #                   성공하면 input ack
+  retry:
+    max_retries: 0 # 최대 재시도 횟수, 0:무제한
+    backoff:
+      initial_interval: 500ms # 전송 시도 간 간격 0.5초, Ex) 전송 시도 → 실패 → 0.5초 기다림 → 재전송 시도
+      max_interval: 3s # 재시도 간격의 최대값, retry 간격은 실패가 반복될수록 점점 늘어남 
+      max_elapsed_time: 1m # 전체 retry를 얼마나 오래 할지 정하는 시간 제한
+    output:
+      redpanda:
+        # client_id: "binance-derivatives-trades-collector" # Redpanda producer client id
+        seed_brokers:
+          - "${REDPANDA_BROKERS}"
+        topic: "${BINANCE_PERP_TOPIC_AGGTRADES}"
+        key: "${! this.symbol }"
+        timestamp_ms: "${! this.exchange_ts }" # 거래소 시간으로
+        compression: snappy # 메시지를 broker로 보낼 때 압축 방식을 지정
+        allow_auto_topic_creation: ${ALLOW_AUTO_TOPIC_CREATION} # 운영에서는 오타 토픽 자동생성 방지 권장
+        timeout: 10s # 10초안에 전송안되면 request를 포기하고 retry 흐름으로 넘어감
+        idempotent_write: true # producer 재시도 상황에서 중복 write 가능성을 줄이는 기능
+        metadata:
+          include_patterns: []

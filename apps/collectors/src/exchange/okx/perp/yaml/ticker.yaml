@@ -1,0 +1,37 @@
+# ──────────────────────────────────────────────────────
+# OKX – Ticker stream (Spot)
+# ──────────────────────────────────────────────────────
+
+input:
+  websocket:
+    url: "${OKX_PUBLIC_WS:wss://ws.okx.com:8443/ws/v5/public}"
+    open_message: |
+      {"op":"subscribe","args":[{"channel":"tickers","instId":"BTC-USDT"},{"channel":"tickers","instId":"ETH-USDT"}]}
+
+pipeline:
+  processors:
+    - mapping: |
+        if this.event.or("") == "subscribe" { root = deleted() }
+
+    - mapping: |
+        let t = this.data.index(0)
+
+        root.exchange    = "okx"
+        root.market_type = "spot"
+        root.symbol      = $t.instId
+        root.bid_price   = $t.bidPx.number()
+        root.bid_size    = $t.bidSz.number()
+        root.ask_price   = $t.askPx.number()
+        root.ask_size    = $t.askSz.number()
+        root.exchange_ts = $t.ts.number()
+        root.local_ts    = now().ts_unix_milli()
+
+output:
+  kafka_franz:
+    seed_brokers:
+      - "${REDPANDA_BROKERS:localhost:9092}"
+    topic: "market.ticker.okx.spot"
+    key: "${! this.symbol }"
+    compression: snappy
+    metadata:
+      include_patterns: []

@@ -1,0 +1,32 @@
+# ──────────────────────────────────────────────────────
+# Binance Spot – 24hr Ticker stream
+# ──────────────────────────────────────────────────────
+
+input:
+  websocket:
+    url: "${BINANCE_PERP_WS}/stream?streams=${BINANCE_SPOT_TICKER_STREAMS:btcusdt@ticker/ethusdt@ticker}"
+
+pipeline:
+  processors:
+    - mapping: |
+        let d = this.data
+
+        root.exchange    = "binance"
+        root.market_type = "spot"
+        root.symbol      = $d.s
+        root.bid_price   = $d.b.number()
+        root.bid_size    = $d.B.number()
+        root.ask_price   = $d.a.number()
+        root.ask_size    = $d.A.number()
+        root.exchange_ts = $d.E
+        root.local_ts    = now().ts_unix_milli()
+
+output:
+  redpanda:
+    seed_brokers:
+      - "${REDPANDA_BROKERS:localhost:9092}"
+    topic: "market.ticker.binance.spot"
+    key: "${! this.symbol }"
+    compression: snappy
+    metadata:
+      include_patterns: []

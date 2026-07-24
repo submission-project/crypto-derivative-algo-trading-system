@@ -1,0 +1,13 @@
+[project]
+name = "storage"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "asyncpg>=0.31.0",
+    "questdb>=4.1.0",
+    "redis>=5.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

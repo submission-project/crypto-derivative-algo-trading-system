@@ -1,0 +1,38 @@
+# ──────────────────────────────────────────────────────
+# Binance Spot – 1-minute Kline (candlestick) stream
+# ──────────────────────────────────────────────────────
+
+input:
+  websocket:
+    url: "${BINANCE_FUTURES_WS}/stream?streams=${BINANCE_FUTURES_SYMBOLS}"
+
+pipeline:
+  processors:
+    - mapping: |
+        let d = this.data
+        let k = $d.k
+
+        root.exchange    = "binance"
+        root.market_type = "spot"
+        root.symbol      = $d.s
+        root.interval    = $k.i
+        root.open_time   = $k.t
+        root.close_time  = $k.T
+        root.open        = $k.o.number()
+        root.high        = $k.h.number()
+        root.low         = $k.l.number()
+        root.close       = $k.c.number()
+        root.volume      = $k.v.number()
+        root.trades      = $k.n
+        root.is_closed   = $k.x
+        root.local_ts    = now().ts_unix_milli()
+
+output:
+  redpanda:
+    seed_brokers:
+      - "${REDPANDA_BROKERS:localhost:9092}"
+    topic: "market.kline.binance.spot"
+    key: "${! this.symbol }"
+    compression: snappy
+    metadata:
+      include_patterns: []
